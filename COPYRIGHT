@@ -1,4 +1,4 @@
-Copyright © 2026 NightPrince. All rights reserved.
+Copyright © 2026 Yahya Elnawasany (NightPrince). All rights reserved.
 
 Fasih-TTS-V1 — Arabic (MSA / Fusha) professional-male Text-to-Speech.
 
@@ -6,7 +6,7 @@ WHAT THIS COVERS
   The Fasih-TTS-V1 fine-tuned model and its weights, the synthesized voice and its
   generated audio, the "Fasih / فَصِيح" name and branding, and the accompanying
   documentation, architecture diagram, and marketing poster in this repository are
-  © 2026 NightPrince.
+  © 2026 Yahya Elnawasany (NightPrince).
 
 MODEL LICENSE
   Fasih-TTS-V1 is a derivative of Coqui XTTS v2 and is distributed under the
@@ -29,4 +29,5 @@ VOICE & RESPONSIBLE USE
   of scope. See the model card's ethics section.
 
 CONTACT
-  NightPrince <yahyaalnwsany39@gmail.com>
+  Yahya Elnawasany (NightPrince) <yahyaalnwsany39@gmail.com>
+  Portfolio: https://nightprincey.github.io/Portfolio-App/

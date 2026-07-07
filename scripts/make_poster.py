@@ -1,23 +1,23 @@
-"""Generate the Fasih-TTS-V1 marketing poster (PNG) with PIL + proper Arabic shaping.
+"""Generate the Fasih-TTS-V1 marketing poster (PNG) — LANDSCAPE, with Arabic shaping.
 
-Output: assets/poster.png  (portrait, 1080x1440)
+Output: assets/poster.png  (landscape, 1600x920)
 """
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import arabic_reshaper
 from bidi.algorithm import get_display
 from PIL import Image, ImageDraw, ImageFont
 
-W, H = 1080, 1440
+W, H = 1600, 920
 OUT = Path("assets/poster.png")
 
 DEJAVU_B = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 DEJAVU = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 AR_BLACK = "/usr/share/fonts/truetype/noto/NotoSansArabic-Black.ttf"
-AR_BOLD = "/usr/share/fonts/truetype/noto/NotoSansArabic-Bold.ttf"
 
 FG = (241, 245, 249)
 MUTED = (148, 163, 184)
@@ -30,8 +30,8 @@ def ar(t: str) -> str:
     return get_display(arabic_reshaper.reshape(t))
 
 
-def font(path: str, size: int) -> ImageFont.FreeTypeFont:
-    return ImageFont.truetype(path, size)
+def font(p, s):
+    return ImageFont.truetype(p, s)
 
 
 def vgradient(top, bot):
@@ -42,81 +42,69 @@ def vgradient(top, bot):
     return base.resize((W, H))
 
 
-def center(draw, y, text, fnt, fill):
-    w = draw.textlength(text, font=fnt)
-    draw.text(((W - w) / 2, y), text, font=fnt, fill=fill)
-    return w
+def center(d, y, text, fnt, fill):
+    w = d.textlength(text, font=fnt)
+    d.text(((W - w) / 2, y), text, font=fnt, fill=fill)
 
 
 def main() -> int:
     img = vgradient((16, 30, 58), (8, 40, 45))
     d = ImageDraw.Draw(img)
-
-    # subtle top glow bar
     d.rectangle([0, 0, W, 8], fill=EMERALD)
 
-    # kicker
-    kick = font(DEJAVU_B, 24)
-    txt = "A R A B I C   ·   M S A / F U S H A   ·   T T S"
-    center(d, 92, txt, kick, MUTED)
+    center(d, 46, "A R A B I C   ·   M S A / F U S H A   ·   T E X T - T O - S P E E C H",
+           font(DEJAVU_B, 24), MUTED)
 
-    # Arabic hero title
-    center(d, 138, ar("فَصِيح"), font(AR_BLACK, 152), FG)
+    # hero: Arabic (bare, unambiguous) + latin
+    center(d, 66, ar("فصيح"), font(AR_BLACK, 118), FG)
+    center(d, 288, "Fasih-TTS-V1", font(DEJAVU_B, 80), EMERALD)
+    center(d, 390, "A professional male voice for Modern Standard Arabic  ·  broadcast-grade  ·  real-time",
+           font(DEJAVU, 27), FG)
 
-    # latin subtitle
-    center(d, 402, "Fasih-TTS-V1", font(DEJAVU_B, 74), EMERALD)
-
-    # tagline
-    tl = font(DEJAVU, 29)
-    center(d, 500, "A professional male voice for Modern Standard Arabic", tl, FG)
-    center(d, 540, "broadcast-grade  ·  real-time  ·  human-level", tl, MUTED)
-
-    # soundwave hero
-    import math
-    bars, bw, gap = 47, 10, 8
+    # soundwave full width
+    bars, bw, gap = 70, 9, 8
     total = bars * bw + (bars - 1) * gap
     x0 = (W - total) / 2
-    cy = 682
+    cy = 508
     for i in range(bars):
-        h = 12 + int(90 * abs(math.sin(i * 0.5)) * (0.5 + 0.5 * math.sin(i * 0.18)))
+        h = 9 + int(58 * abs(math.sin(i * 0.42)) * (0.5 + 0.5 * math.sin(i * 0.14)))
         t = i / (bars - 1)
         col = tuple(int(EMERALD[k] + (VIOLET[k] - EMERALD[k]) * t) for k in range(3))
         x = x0 + i * (bw + gap)
-        d.rounded_rectangle([x, cy - h, x + bw, cy + h], radius=5, fill=col)
+        d.rounded_rectangle([x, cy - h, x + bw, cy + h], radius=4, fill=col)
 
-    # stat cards 2x2
+    # 4 stat cards in a row
     stats = [("1.3%", "CER — human-level"), ("×4", "identical / zero variance"),
              ("~0.60", "real-time factor"), ("675 ms", "streaming first-audio")]
-    cw, ch, gx, gy = 470, 150, 40, 34
-    sx = (W - (2 * cw + gx)) / 2
-    sy = 806
-    big = font(DEJAVU_B, 66)
-    lab = font(DEJAVU, 27)
+    cw, ch, gx = 350, 138, 30
+    sx = (W - (4 * cw + 3 * gx)) / 2
+    sy = 574
+    big = font(DEJAVU_B, 58)
+    lab = font(DEJAVU, 24)
     for i, (v, l) in enumerate(stats):
-        cx = sx + (i % 2) * (cw + gx)
-        cyy = sy + (i // 2) * (ch + gy)
-        d.rounded_rectangle([cx, cyy, cx + cw, cyy + ch], radius=20, fill=(21, 34, 57),
+        cx = sx + i * (cw + gx)
+        d.rounded_rectangle([cx, sy, cx + cw, sy + ch], radius=18, fill=(21, 34, 57),
                             outline=(45, 60, 85), width=2)
-        d.rectangle([cx, cyy + 20, cx + 6, cyy + ch - 20], fill=EMERALD)
-        d.text((cx + 34, cyy + 30), v, font=big, fill=GOLD)
-        d.text((cx + 36, cyy + 104), l, font=lab, fill=MUTED)
+        d.rectangle([cx, sy + 18, cx + 6, sy + ch - 18], fill=EMERALD)
+        d.text((cx + 30, sy + 26), v, font=big, fill=GOLD)
+        d.text((cx + 32, sy + 92), l, font=lab, fill=MUTED)
 
     # features
-    feats = "✓ Diacritization (CATT)    ✓ Numbers    ✓ Sacred lexicon    ✓ Streaming API"
-    center(d, 1188, feats, font(DEJAVU, 24), FG)
+    center(d, 748,
+           "✓ Fully diacritized (CATT)      ✓ Number expansion      ✓ Sacred-term lexicon      ✓ Streaming API",
+           font(DEJAVU, 24), FG)
 
-    # divider
-    d.line([90, 1252, W - 90, 1252], fill=(45, 60, 85), width=2)
-
-    # footer
-    ft = font(DEJAVU_B, 26)
-    center(d, 1284, "huggingface.co/NightPrince/Fasih-TTS-V1", ft, EMERALD)
-    center(d, 1324, "github.com/NightPrinceY/Fasih-TTS-V1", ft, VIOLET)
-    center(d, 1376, "Fine-tuned from Coqui XTTS v2   ·   © 2026 NightPrince", font(DEJAVU, 22), MUTED)
+    # divider + footer
+    d.line([120, 800, W - 120, 800], fill=(45, 60, 85), width=2)
+    center(d, 820, "huggingface.co/NightPrince/Fasih-TTS-V1      ·      github.com/NightPrinceY/Fasih-TTS-V1",
+           font(DEJAVU_B, 25), EMERALD)
+    center(d, 856, "Portfolio:  nightprincey.github.io/Portfolio-App", font(DEJAVU_B, 24), VIOLET)
+    center(d, 890, "by Yahya Elnawasany (NightPrince)   ·   Fine-tuned from Coqui XTTS v2   ·   © 2026",
+           font(DEJAVU, 21), MUTED)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     img.save(OUT, "PNG")
-    print(f"wrote {OUT} ({OUT.stat().st_size} bytes)")
+    print(f"wrote {OUT} ({OUT.stat().st_size} bytes, {W}x{H})")
     return 0
 
 
