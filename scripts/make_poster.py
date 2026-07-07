@@ -9,7 +9,6 @@ import math
 from pathlib import Path
 
 import arabic_reshaper
-from bidi.algorithm import get_display
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1600, 920
@@ -27,7 +26,10 @@ GOLD = (251, 191, 36)
 
 
 def ar(t: str) -> str:
-    return get_display(arabic_reshaper.reshape(t))
+    # The installed python-bidi (Rust rewrite) reverses Arabic incorrectly here;
+    # arabic_reshaper alone yields the correct visual order (ف on the right) — verified
+    # by pixel analysis of the feh dot position.
+    return arabic_reshaper.reshape(t)
 
 
 def font(p, s):
