@@ -1,0 +1,63 @@
+[project]
+name = "tts"
+version = "0.1.0"
+description = "High-quality Arabic (MSA/Fusha) professional male Text-to-Speech — research project"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # --- deep learning (CUDA cu124 wheels; Turing sm_75 supported, FP16 only) ---
+    "torch>=2.4,<2.7",
+    "torchaudio>=2.4,<2.7",
+    # --- data / hub ---
+    "huggingface-hub>=0.25",
+    "datasets>=3.0",
+    # --- audio processing ---
+    "soundfile>=0.12",
+    "librosa>=0.10",
+    "pydub>=0.25",
+    "pyloudnorm>=0.1",
+    # --- Arabic NLP ---
+    "pyarabic>=0.6",
+    # --- utilities ---
+    "numpy>=1.26,<2.0",
+    "pandas>=2.0",
+    "tqdm>=4.66",
+    "python-dotenv>=1.0",
+    "pyyaml>=6.0",
+    "rich>=13.0",
+]
+
+# Model frameworks are installed per-phase (they have heavy, sometimes conflicting
+# deps) via: `uv sync --extra xtts` / `uv sync --extra f5`.
+[project.optional-dependencies]
+xtts = ["coqui-tts>=0.25", "transformers>=4.57,<5.0"]  # 5.x removes isin_mps_friendly
+f5 = ["f5-tts"]
+# Diacritization backend: vendored CATT (src/tts/text/catt, MIT). User-authorized.
+diacritize = ["pytorch-lightning>=2.4", "kaldialign>=0.9"]
+# Evaluation: Arabic ASR (CER/intelligibility) + WER/CER metrics.
+eval = ["faster-whisper>=1.0", "jiwer>=3.0"]
+# Serving: HTTP API for the voice agent.
+serve = ["fastapi>=0.115", "uvicorn>=0.30"]
+
+[dependency-groups]
+dev = ["ruff>=0.6", "pytest>=8.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tts"]
+
+# NOTE: torch/torchaudio come from PyPI. Since torch 2.4+ the default linux x86_64
+# PyPI wheel is the CUDA 12.4 build (bundles CUDA, runs on Turing sm_75). We use it
+# instead of download.pytorch.org because that CDN (download-r2.pytorch.org) is
+# unreachable from this host.
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -1,0 +1,40 @@
+# ---- Python ----
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.ipynb_checkpoints/
+
+# ---- Environments & secrets ----
+.venv/
+.env
+*.pem
+*.key
+
+# ---- Large / private / licensed artifacts (NEVER publish) ----
+# Private dataset audio + transcripts (NightPrince/* is private)
+data/
+# Model weights: fine-tuned (derived from CPML XTTS) + base XTTS (CPML) + CATT ckpt
+models/
+# Training runs (multi-GB checkpoints)
+experiments/
+# Generated audio + logs
+outputs/
+logs/
+wandb/
+*.log
+
+# ---- Media / weight file types (belt-and-suspenders) ----
+*.wav
+*.mp3
+*.flac
+*.pcm
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# ---- OS ----
+.DS_Store

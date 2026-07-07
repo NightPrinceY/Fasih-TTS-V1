@@ -1,0 +1,31 @@
+# XTTS v2 fine-tune — Arabic professional male (single speaker).
+# Tuned for a single RTX 2080 Ti (11 GiB, Turing, FP16 only).
+base_model_dir: models/xtts_v2_base
+dataset_path: data/processed/xtts
+meta_train: metadata_train.txt
+meta_eval: metadata_eval.txt
+language: ar
+speaker_name: muslim_male
+output_path: experiments/xtts_ar_v1
+
+# --- optimization ---
+epochs: 12
+batch_size: 1           # FP32 batch=2 peaks ~10.9GB; batch=1 gives safe headroom
+grad_accum: 24          # effective batch ~24
+lr: 5.0e-6              # low LR to avoid catastrophic forgetting on a small set
+weight_decay: 1.0e-2
+# Turing (sm_75) has NO bf16, and XTTS's GPT overflows under FP16 autocast (NaN loss).
+# FP32 is the only stable option on this GPU. Verified via smoke test.
+mixed_precision: false
+
+# --- lengths ---
+max_text_length: 200
+max_wav_length: 255995  # ~11.6 s @ 22050
+max_conditioning_length: 132300   # 6 s
+min_conditioning_length: 66150    # 3 s
+
+# --- logging / checkpoints ---
+num_workers: 8
+print_step: 50
+save_step: 500          # frequent checkpoints -> minimal loss if a co-tenant OOMs the run
+save_n_checkpoints: 3
