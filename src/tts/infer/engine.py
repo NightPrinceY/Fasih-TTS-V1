@@ -1,4 +1,4 @@
-"""Production XTTS inference engine for the Arabic 'Fasih' voice agent.
+"""Production XTTS inference engine for the Arabic 'Muslim' voice agent.
 
 Loads the fine-tuned model once, caches the target-voice conditioning latents, runs the
 full Arabic text front-end (normalize -> numbers -> diacritize-if-needed -> lexicon ->

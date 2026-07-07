@@ -1,4 +1,4 @@
-"""HTTP TTS API for the 'Fasih' voice agent (fine-tuned Arabic XTTS).
+"""HTTP TTS API for the 'Muslim' voice agent (fine-tuned Arabic XTTS).
 
 Endpoints:
   GET  /health                      -> {"status": "ok"}
