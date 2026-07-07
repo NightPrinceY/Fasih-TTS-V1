@@ -1,7 +1,11 @@
-# Arabic Professional Fusha TTS
+# Arabic Professional Fusha TTS — Fasih-TTS-V1
 
 High-quality **Modern Standard Arabic (Fusha)** professional male Text-to-Speech for the
 "Muslim" voice agent. Research-grade, reproducible, single-speaker fine-tuning of XTTS v2.
+
+The trained model **Fasih-TTS-V1** is on the Hub → https://huggingface.co/NightPrince/Fasih-TTS-V1
+
+![Fasih-TTS-V1 architecture](assets/architecture.png)
 
 ## Status: working end-to-end ✅
 Raw Arabic text → auto-diacritized + number-expanded + chunked → natural speech, via HTTP/CLI.
