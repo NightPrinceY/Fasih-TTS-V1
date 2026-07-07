@@ -21,19 +21,27 @@ listening comparison.
   the reference text (both diacritics-stripped, orthography-normalized, digits expanded to words)
   — `scripts/silma_compare.py`.
 
-## Results (objective, WER/CER — lower is better)
+## Results — two ASR judges + naturalness
 
-| Rank | Model | WER % | CER % |
-|:--:|--|:--:|:--:|
-| **1** | **Fasih-TTS-V1 (ours)** | **6.5** | **2.0** |
-| 2 | XTTS (base) | 10.3 | 6.4 |
-| 3 | silma_tts | 11.1 | 6.0 |
-| 4 | chatterbox | 12.8 | 6.6 |
-| 5 | omnivoice | 15.3 | 7.2 |
-| 6 | habibi_specialized | 21.9 | 9.7 |
+Scored by **two independent ASRs** (Whisper-large-v3 and NVIDIA NeMo Arabic FastConformer) plus
+**UTMOS** naturalness. Using two judges keeps the ranking honest.
 
-**Fasih-TTS-V1 ranks #1 by intelligibility**, ahead of base XTTS and SILMA's own model. Its full
-Arabic front-end (diacritization + normalization) is a direct contributor to the low error rate.
+| Model | WER · Whisper | WER · NeMo | UTMOS |
+|--|:--:|:--:|:--:|
+| **Fasih-TTS-V1 (ours)** | **6.5** | **2.5** | 3.16 |
+| xtts (base) | 10.3 | 2.5 | 2.99 |
+| chatterbox | 12.8 | 5.4 | 3.20 |
+| silma_tts | 11.1 | 5.8 | 3.15 |
+| omnivoice | 15.3 | 7.3 | 3.62 |
+| habibi_specialized | 21.9 | 23.3 | 2.33 |
+
+**Fasih is top-tier on intelligibility** — best-or-tied lowest WER across *both* judges (tied with
+base XTTS at 2.5% on NeMo). On **naturalness (UTMOS) it is mid-pack (#3)**; the smoothest model
+(omnivoice) is the least accurate. Fasih is tuned toward pronunciation correctness — the priority
+for a religious agent. Its Arabic front-end (diacritization + normalization) drives the low WER.
+
+Reproduce: `scripts/silma_compare.py` (Whisper), `scripts/nemo_compare.py` (NeMo, isolated venv),
+`scripts/utmos_compare.py` (UTMOS).
 
 **Full provenance (verify it yourself):** every model's per-sentence reference, Whisper
 transcription, and WER/CER is in
