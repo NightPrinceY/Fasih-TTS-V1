@@ -5,7 +5,7 @@ dataset_path: data/processed/xtts
 meta_train: metadata_train.txt
 meta_eval: metadata_eval.txt
 language: ar
-speaker_name: muslim_male
+speaker_name: fasih_male
 output_path: experiments/xtts_ar_v1
 
 # --- optimization ---

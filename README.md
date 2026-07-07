@@ -1,7 +1,7 @@
 # Arabic Professional Fusha TTS
 
 High-quality **Modern Standard Arabic (Fusha)** professional male Text-to-Speech for the
-"Muslim" voice agent. Research-grade, reproducible, single-speaker fine-tuning of XTTS v2.
+"Fasih" voice agent. Research-grade, reproducible, single-speaker fine-tuning of XTTS v2.
 
 ## Status: working end-to-end ✅
 Raw Arabic text → auto-diacritized + number-expanded + chunked → natural speech, via HTTP/CLI.
