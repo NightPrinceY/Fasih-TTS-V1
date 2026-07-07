@@ -35,6 +35,13 @@ listening comparison.
 **Fasih-TTS-V1 ranks #1 by intelligibility**, ahead of base XTTS and SILMA's own model. Its full
 Arabic front-end (diacritization + normalization) is a direct contributor to the low error rate.
 
+**Full provenance (verify it yourself):** every model's per-sentence reference, Whisper
+transcription, and WER/CER is in
+[`assets/benchmark/silma_msa_detailed.csv`](../assets/benchmark/silma_msa_detailed.csv);
+the aggregate is [`assets/benchmark/silma_msa_scores.csv`](../assets/benchmark/silma_msa_scores.csv).
+Regenerate end-to-end with `scripts/silma_benchmark.py` (synthesis) + `scripts/silma_compare.py`
+(scoring) — competitor audio is pulled straight from SILMA's Space.
+
 ![chart](../assets/benchmark_msa.png)
 
 ## Caveats

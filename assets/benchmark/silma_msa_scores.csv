@@ -1,0 +1,7 @@
+,model,WER%,CER%
+1,fasih (ours),6.5,2.0
+2,xtts,10.3,6.4
+3,silma_tts,11.1,6.0
+4,chatterbox,12.8,6.6
+5,omnivoice,15.3,7.2
+6,habibi_specialized,21.9,9.7
