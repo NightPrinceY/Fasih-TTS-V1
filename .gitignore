@@ -38,3 +38,8 @@ wandb/
 
 # ---- OS ----
 .DS_Store
+
+# Space: bundled copies (assembled by scripts/deploy_space.sh)
+space_build/tts/
+space_build/configs/
+space_build/**/__pycache__/
