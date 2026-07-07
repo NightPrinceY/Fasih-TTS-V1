@@ -8,7 +8,6 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-import arabic_reshaper
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1600, 920
@@ -25,15 +24,14 @@ VIOLET = (167, 139, 250)
 GOLD = (251, 191, 36)
 
 
-def ar(t: str) -> str:
-    # The installed python-bidi (Rust rewrite) reverses Arabic incorrectly here;
-    # arabic_reshaper alone yields the correct visual order (ف on the right) — verified
-    # by pixel analysis of the feh dot position.
-    return arabic_reshaper.reshape(t)
-
-
 def font(p, s):
     return ImageFont.truetype(p, s)
+
+
+def arabic_font(size: int):
+    # RAQM (HarfBuzz) does correct Arabic shaping + joining + RTL ordering.
+    # Pass the RAW Arabic string — no reshaper/bidi needed.
+    return ImageFont.truetype(AR_BLACK, size, layout_engine=ImageFont.Layout.RAQM)
 
 
 def vgradient(top, bot):
@@ -57,8 +55,8 @@ def main() -> int:
     center(d, 46, "A R A B I C   ·   M S A / F U S H A   ·   T E X T - T O - S P E E C H",
            font(DEJAVU_B, 24), MUTED)
 
-    # hero: Arabic (bare, unambiguous) + latin
-    center(d, 66, ar("فصيح"), font(AR_BLACK, 118), FG)
+    # hero: Arabic (bare, unambiguous) + latin — RAQM shapes it correctly
+    center(d, 66, "فصيح", arabic_font(118), FG)
     center(d, 288, "Fasih-TTS-V1", font(DEJAVU_B, 80), EMERALD)
     center(d, 390, "A professional male voice for Modern Standard Arabic  ·  broadcast-grade  ·  real-time",
            font(DEJAVU, 27), FG)
