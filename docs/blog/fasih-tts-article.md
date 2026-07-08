@@ -1,6 +1,6 @@
 # Fasih: A #1‑Intelligibility Arabic (Fusha) Voice, Fine‑tuned on 2.4 Hours and 2019 GPUs
 
-![Fasih-TTS-V1](https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/blog_banner.png)
+![Fasih-TTS-V1](https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/blog_banner.png?v=2)
 
 Modern Standard Arabic (Fusha) is spoken and understood by hundreds of millions of people, yet it
 remains one of the harder languages to synthesize well — mostly because the same written word can
@@ -91,7 +91,7 @@ Two Arabic‑specific gotchas worth flagging:
 
 ## Architecture
 
-![Fasih architecture](https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/architecture.png)
+![Fasih architecture](https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/architecture.png?v=2)
 
 ## Does it actually work? An honest, two‑judge benchmark
 
@@ -102,7 +102,7 @@ sentences), pulled **every competing model's audio** from the benchmark, and sco
 plus Fasih — with **two independent ASRs** (Whisper‑large‑v3 and NVIDIA NeMo Arabic FastConformer),
 then added **UTMOS** for naturalness.
 
-![SILMA benchmark](https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/benchmark_msa.png)
+![SILMA benchmark](https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/benchmark_msa.png?v=2)
 
 | Model | WER · Whisper | WER · NeMo | UTMOS |
 |---|:--:|:--:|:--:|
