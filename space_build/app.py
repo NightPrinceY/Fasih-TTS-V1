@@ -1,8 +1,13 @@
 """Fasih-TTS-V1 — live Arabic (MSA/Fusha) TTS demo on Hugging Face ZeroGPU."""
 
+import io
+import json
 import os
 import sys
+import time
 import urllib.request
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import gradio as gr
@@ -14,6 +19,7 @@ from huggingface_hub import snapshot_download
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 MODEL_REPO = "NightPrince/Fasih-TTS-V1"
+CAPTURE_REPO = "NightPrince/fasih-space-captures"
 CATT_URL = "https://github.com/abjadai/catt/releases/download/v2/best_ed_mlm_ns_epoch_178.pt"
 SR = 24000
 
@@ -60,8 +66,61 @@ except Exception as e:  # noqa: BLE001
     pipe, DIAC_OK = TextPipeline(diacritizer=None), False
 
 
+def _log_capture(text: str, auto_diacritize: bool, temperature: float,
+                  wav: np.ndarray, latency_s: float) -> None:
+    """Best-effort: save the (text, audio, metadata) triple to a private dataset.
+
+    Never allowed to break the user-facing request — any failure here is
+    logged server-side and swallowed.
+    """
+    try:
+        import soundfile as sf
+        from huggingface_hub import HfApi, hf_hub_download
+
+        api = HfApi()  # picks up HF_TOKEN from the Space's secret automatically
+        now = datetime.now(timezone.utc)
+        uid = uuid.uuid4().hex[:8]
+        audio_path = f"data/{now:%Y-%m-%d}/{now:%H%M%S}_{uid}.wav"
+
+        buf = io.BytesIO()
+        sf.write(buf, wav, SR, format="WAV")
+        buf.seek(0)
+        api.upload_file(path_or_fileobj=buf, path_in_repo=audio_path,
+                        repo_id=CAPTURE_REPO, repo_type="dataset")
+
+        row = {
+            "file_name": audio_path,
+            "text": text,
+            "auto_diacritize": bool(auto_diacritize),
+            "temperature": float(temperature),
+            "duration_seconds": round(len(wav) / SR, 3),
+            "sample_rate": SR,
+            "latency_seconds": round(latency_s, 3),
+            # Full human-readable timestamp, e.g. "Friday, July 10, 2026 at 03:45:12 PM UTC"
+            "timestamp_human": now.strftime("%A, %B %d, %Y at %I:%M:%S %p UTC"),
+            "timestamp_iso": now.isoformat(),
+        }
+
+        try:
+            meta_path = hf_hub_download(CAPTURE_REPO, "metadata.jsonl", repo_type="dataset")
+            existing = Path(meta_path).read_text(encoding="utf-8")
+        except Exception:
+            existing = ""
+
+        updated = existing + json.dumps(row, ensure_ascii=False) + "\n"
+        api.upload_file(
+            path_or_fileobj=io.BytesIO(updated.encode("utf-8")),
+            path_in_repo="metadata.jsonl",
+            repo_id=CAPTURE_REPO,
+            repo_type="dataset",
+        )
+    except Exception as e:  # noqa: BLE001
+        print("capture logging failed (non-fatal):", e)
+
+
 @spaces.GPU(duration=120)
 def synthesize(text: str, auto_diacritize: bool = True, temperature: float = 0.65):
+    t0 = time.time()
     text = (text or "").strip()
     if not text:
         raise gr.Error("Please enter some Arabic text.")
@@ -81,6 +140,9 @@ def synthesize(text: str, auto_diacritize: bool = True, temperature: float = 0.6
         if i < len(chunks) - 1:
             pieces.append(gap)
     wav = np.concatenate(pieces) if pieces else np.zeros(1, np.float32)
+
+    _log_capture(text, auto_diacritize, temperature, wav, time.time() - t0)
+
     return SR, wav
 
 
@@ -91,6 +153,8 @@ Ranked #1 for intelligibility on the SILMA open-source Arabic TTS benchmark.
 [Model](https://huggingface.co/NightPrince/Fasih-TTS-V1) ·
 [Benchmark](https://huggingface.co/datasets/NightPrince/Fasih-TTS-Benchmark) ·
 [Code](https://github.com/NightPrinceY/Fasih-TTS-V1)
+
+*Submitted text and generated audio may be privately logged to improve the model.*
 """
 
 demo = gr.Interface(
@@ -114,4 +178,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.queue(max_size=20).launch()
+    demo.queue(max_size=20).launch(mcp_server=True)
