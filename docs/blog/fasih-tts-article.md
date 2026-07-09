@@ -1,6 +1,6 @@
 # Introducing Fasih-TTS-V1: a #1-Intelligibility Arabic (Fusha) Voice — and an Open Benchmark to Back It Up
 
-![Fasih-TTS-V1](https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/blog_banner.png?v=2)
+![Fasih-TTS-V1](https://huggingface.co/NightPrince/Fasih-TTS-V1/resolve/main/assets/blog_banner.png)
 
 Arabic is spoken by more than 400 million people, yet Modern Standard Arabic (Fusha) is still poorly
 served by open text-to-speech — and, just as importantly, **there is almost no rigorous, reproducible
@@ -108,7 +108,7 @@ loss: **2.622**. If you ever fine-tune XTTS on older hardware and see instant `N
 
 ## Architecture
 
-![Fasih architecture](https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/architecture.png?v=2)
+![Fasih architecture](https://huggingface.co/NightPrince/Fasih-TTS-V1/resolve/main/assets/architecture.png)
 
 ## An honest, two-judge benchmark
 
@@ -121,7 +121,7 @@ victory. I wanted numbers I would trust — and that the community can reproduce
 4. scored all six models with **two independent ASRs** — Whisper-large-v3 **and** NVIDIA NeMo Arabic
    FastConformer — then added **UTMOS** for naturalness.
 
-![SILMA benchmark](https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/benchmark_msa.png?v=2)
+![SILMA benchmark](https://huggingface.co/NightPrince/Fasih-TTS-V1/resolve/main/assets/benchmark_msa.png)
 
 | Model | WER · Whisper | WER · NeMo | UTMOS |
 |---|:--:|:--:|:--:|
@@ -155,13 +155,13 @@ Same sentences, three models — trust your ears.
 
 | Fasih (ours) | XTTS (base) | SILMA TTS |
 |---|---|---|
-| <audio controls src="https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/blog_audio/s1_fasih.mp3"></audio> | <audio controls src="https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/blog_audio/s1_xtts.mp3"></audio> | <audio controls src="https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/blog_audio/s1_silma.mp3"></audio> |
+| <audio controls src="https://huggingface.co/NightPrince/Fasih-TTS-V1/resolve/main/assets/blog_audio/s1_fasih.mp3"></audio> | <audio controls src="https://huggingface.co/NightPrince/Fasih-TTS-V1/resolve/main/assets/blog_audio/s1_xtts.mp3"></audio> | <audio controls src="https://huggingface.co/NightPrince/Fasih-TTS-V1/resolve/main/assets/blog_audio/s1_silma.mp3"></audio> |
 
 **A modern sentence — *تحدث النوبة القلبية عندما يتوقف سريان الدم لجزء من القلب***
 
 | Fasih (ours) | XTTS (base) | SILMA TTS |
 |---|---|---|
-| <audio controls src="https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/blog_audio/s3_fasih.mp3"></audio> | <audio controls src="https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/blog_audio/s3_xtts.mp3"></audio> | <audio controls src="https://raw.githubusercontent.com/NightPrinceY/Fasih-TTS-V1/main/assets/blog_audio/s3_silma.mp3"></audio> |
+| <audio controls src="https://huggingface.co/NightPrince/Fasih-TTS-V1/resolve/main/assets/blog_audio/s3_fasih.mp3"></audio> | <audio controls src="https://huggingface.co/NightPrince/Fasih-TTS-V1/resolve/main/assets/blog_audio/s3_xtts.mp3"></audio> | <audio controls src="https://huggingface.co/NightPrince/Fasih-TTS-V1/resolve/main/assets/blog_audio/s3_silma.mp3"></audio> |
 
 ## Get started
 
