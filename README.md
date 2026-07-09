@@ -14,6 +14,13 @@ Raw Arabic text → auto-diacritized + number-expanded + chunked → natural spe
 - **Quality (CER):** 1.3% mean, 2.2% worst — **on par with the human originals (1.8%)**;
   no instability across repeats/variety/long text. RTF ~0.6, streaming first-audio ~675 ms.
 
+## In the wild
+
+- **[Arabic TTS Arena](https://huggingface.co/spaces/Navid-AI/Arabic-TTS-Arena)** — Fasih-TTS-V1
+  has been submitted for blind A/B voting against other Arabic TTS models.
+  PR: [Navid-Gen-AI/arabic-tts-arena#6](https://github.com/Navid-Gen-AI/arabic-tts-arena/pull/6)
+  (pending maintainer review at time of writing).
+
 ## Hardware (verified)
 8× RTX 2080 Ti (11 GiB, **Turing sm_75 → FP32 training only, no bf16/FA2**), Ubuntu 24.04/WSL2,
 CUDA 12.x, Python 3.12, uv. Use GPUs 0,1,4,7. Keep the machine awake (sleep kills CUDA).
