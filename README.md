@@ -9,6 +9,7 @@
 
 <p align="center">
   <b>Modern Standard Arabic (Fusha) text-to-speech with a professional male voice.</b><br/>
+  467M parameters · fine-tuned from Coqui XTTS v2 · 24 kHz<br/>
   The full training, evaluation and serving pipeline behind the model.
 </p>
 
@@ -104,7 +105,7 @@ raw Arabic text ─▶ normalize ─▶ numbers → words ─▶ CATT diacritiza
                        24 kHz speech ◀─ HiFi-GAN decoder ◀─ GPT (fine-tuned) ◀─ shipped speaker latents ◀┘
 ```
 
-Only the XTTS **GPT** was fine-tuned. The HiFi-GAN decoder and the DVAE stayed frozen. The voice
+Fasih has **466.9M parameters**. Only the XTTS **GPT** (441.0M) was fine-tuned. The HiFi-GAN decoder and the DVAE stayed frozen. The voice
 ships as precomputed conditioning latents (`speaker_latents.pt`), so no reference audio is needed
 at inference.
 
@@ -156,6 +157,9 @@ docker run --gpus all -p 3006:3006 nightprincey/muslim-fasih-tts:v1
 | 5 · Build LJSpeech layout | `uv run python scripts/build_xtts_dataset.py` |
 | 6 · Fine-tune (tmux, resumable) | `scripts/run_xtts_tmux.sh` |
 | 7 · Evaluate CER | `CUDA_VISIBLE_DEVICES=0 uv run python scripts/evaluate_cer.py` |
+
+**Parameters:** 466.9M total: GPT 441.0M (fine-tuned) + HiFi-GAN decoder 25.9M (17.8M waveform
+decoder + 8.0M speaker encoder, frozen).
 
 **Training setup:** 1297 clips (~2.4 h, one male speaker), GPT-only fine-tune, AdamW at LR 5e-6,
 batch 1 × gradient accumulation 24, gradient checkpointing, **FP32** on a single RTX 2080 Ti
