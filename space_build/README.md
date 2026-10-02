@@ -1,10 +1,10 @@
 ---
 title: Fasih TTS (Arabic Fusha)
-emoji: 🕌
-colorFrom: green
-colorTo: indigo
+emoji: 🎙️
+colorFrom: yellow
+colorTo: red
 sdk: gradio
-sdk_version: 5.50.0
+sdk_version: 6.17.3
 app_file: app.py
 pinned: true
 license: cc-by-nc-4.0

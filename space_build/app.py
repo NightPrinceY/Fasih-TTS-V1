@@ -55,6 +55,7 @@ GPT_COND, SPK = _lat["gpt_cond_latent"], _lat["speaker_embedding"]
 from tts.text.chunk import chunk_text  # noqa: E402
 from tts.text.normalize import normalize  # noqa: E402
 from tts.text.pipeline import TextPipeline  # noqa: E402
+import ui  # noqa: E402
 
 try:
     from tts.text.diacritize import Diacritizer
@@ -73,6 +74,8 @@ def _log_capture(text: str, auto_diacritize: bool, temperature: float,
     Never allowed to break the user-facing request — any failure here is
     logged server-side and swallowed.
     """
+    if not os.environ.get("SPACE_ID"):
+        return
     try:
         import soundfile as sf
         from huggingface_hub import HfApi, hf_hub_download
@@ -118,64 +121,123 @@ def _log_capture(text: str, auto_diacritize: bool, temperature: float,
         print("capture logging failed (non-fatal):", e)
 
 
-@spaces.GPU(duration=120)
-def synthesize(text: str, auto_diacritize: bool = True, temperature: float = 0.65):
-    t0 = time.time()
+# Chunks per GPU call. Long text is spoken over several calls, so length is unlimited.
+CHUNKS_PER_CALL = 10
+
+EXAMPLES = [
+    ("تحية", "السلام عليكم ورحمة الله وبركاته، أنا مسلم، مساعدك الصوتي. كيف يمكنني مساعدتك اليوم؟"),
+    ("أرقام", "أركان الإسلام 5، وأركان الإيمان 6."),
+    ("فقه", "الوضوء شرط لصحة الصلاة، ويبدأ بالنية ثم غسل الوجه واليدين إلى المرفقين."),
+    ("نص طويل", "العلم نور يهدي صاحبه إلى الحق، ويرفع قدره بين الناس. وقد حث الإسلام على طلب العلم، "
+                "فجعله فريضة على كل مسلم. ومن سلك طريقا يلتمس فيه علما، سهل الله له به طريقا إلى الجنة."),
+]
+
+
+def _prepare(text: str, auto_diacritize: bool) -> list[str]:
+    """Arabic front-end on CPU, outside the GPU allocation."""
     text = (text or "").strip()
     if not text:
-        raise gr.Error("Please enter some Arabic text.")
+        raise gr.Error("اكتب نصًا عربيًا أولًا. Enter some Arabic text first.")
     if auto_diacritize and DIAC_OK:
-        chunks = pipe.prepare_chunks(text)
-    else:
-        chunks = chunk_text(normalize(text), 160)
+        # CATT reads at most 1024 characters at once, so diacritize long text piece by piece.
+        # 600 leaves room for numbers growing into words.
+        return [c for piece in chunk_text(normalize(text), 600) for c in pipe.prepare_chunks(piece)]
+    return chunk_text(normalize(text), 160)
 
+
+def _gpu_seconds(chunks: list[str], temperature: float) -> int:
+    return 15 + 6 * len(chunks)
+
+
+@spaces.GPU(duration=_gpu_seconds)
+def _generate_group(chunks: list[str], temperature: float) -> list[np.ndarray]:
     m = model.to("cuda")
     gpt, spk = GPT_COND.to("cuda"), SPK.to("cuda")
-    gap = np.zeros(int(SR * 0.12), dtype=np.float32)
-    pieces = []
-    for i, ch in enumerate(chunks):
+    wavs = []
+    for ch in chunks:
         out = m.inference(ch, "ar", gpt, spk, temperature=float(temperature),
                           repetition_penalty=2.0, enable_text_splitting=False)
-        pieces.append(np.asarray(out["wav"], dtype=np.float32))
-        if i < len(chunks) - 1:
+        wavs.append(np.asarray(out["wav"], dtype=np.float32))
+    return wavs
+
+
+def _generate(chunks: list[str], temperature: float) -> np.ndarray:
+    """Speak any number of chunks, one GPU call per CHUNKS_PER_CALL chunks."""
+    wavs = []
+    for i in range(0, len(chunks), CHUNKS_PER_CALL):
+        wavs += _generate_group(chunks[i:i + CHUNKS_PER_CALL], temperature)
+    gap = np.zeros(int(SR * 0.12), dtype=np.float32)
+    pieces = []
+    for i, w in enumerate(wavs):
+        pieces.append(w)
+        if i < len(wavs) - 1:
             pieces.append(gap)
-    wav = np.concatenate(pieces) if pieces else np.zeros(1, np.float32)
+    return np.concatenate(pieces) if pieces else np.zeros(1, np.float32)
 
+
+def synthesize(text: str, auto_diacritize: bool = True, temperature: float = 0.65):
+    """Speak Modern Standard Arabic (Fusha) text in the Fasih professional male voice.
+
+    Args:
+        text: Arabic text, with or without diacritics. Numbers are read as words.
+        auto_diacritize: add tashkil with the CATT diacritizer before speaking.
+        temperature: sampling temperature, 0.3 to 1.0. Lower is steadier.
+
+    Returns:
+        24 kHz mono audio.
+    """
+    t0 = time.time()
+    wav = _generate(_prepare(text, auto_diacritize), temperature)
     _log_capture(text, auto_diacritize, temperature, wav, time.time() - t0)
-
     return SR, wav
 
 
-DESC = """
-**Fasih** (فَصِيح) — a professional male **Modern Standard Arabic (Fusha)** voice, fine-tuned from
-Coqui XTTS v2. Type Arabic (even without diacritics — it auto-adds tashkīl via CATT) and hear it.
-Ranked #1 for intelligibility on the SILMA open-source Arabic TTS benchmark.
-[Model](https://huggingface.co/NightPrince/Fasih-TTS-V1) ·
-[Benchmark](https://huggingface.co/datasets/NightPrince/Fasih-TTS-Benchmark) ·
-[Code](https://github.com/NightPrinceY/Fasih-TTS-V1)
+def speak(text: str, auto_diacritize: bool, temperature: float):
+    t0 = time.time()
+    chunks = _prepare(text, auto_diacritize)
+    wav = _generate(chunks, temperature)
+    elapsed = time.time() - t0
+    _log_capture(text, auto_diacritize, temperature, wav, elapsed)
+    return (SR, wav), ui.stats_html(len(wav) / SR, elapsed, len(chunks)), ui.read_html(chunks)
 
-*Submitted text and generated audio may be privately logged to improve the model.*
-"""
 
-demo = gr.Interface(
-    fn=synthesize,
-    inputs=[
-        gr.Textbox(label="النص العربي — Arabic text", lines=3, rtl=True,
-                   value="السلام عليكم ورحمة الله وبركاته، كيف يمكنني مساعدتك اليوم؟"),
-        gr.Checkbox(label="تشكيل تلقائي — Auto-diacritize (CATT)", value=True),
-        gr.Slider(0.3, 1.0, value=0.65, step=0.05, label="Temperature"),
-    ],
-    outputs=gr.Audio(label="Fasih output", type="numpy"),
-    title="🕌 Fasih-TTS-V1 — Arabic (Fusha) Professional Male TTS",
-    description=DESC,
-    examples=[
-        ["الصلوات المفروضة خمس في اليوم والليلة، وهي عمود الدين.", True, 0.65],
-        ["الوضوء شرط لصحة الصلاة، ويبدأ بالنية ثم غسل الوجه واليدين.", True, 0.65],
-        ["بارك الله فيك، وجعل يومك مليئا بالخير والبركة.", True, 0.6],
-    ],
-    cache_examples=False,
-    flagging_mode="never",
-)
+def count(text: str):
+    return ui.counter_html(len(text or ""))
+
+
+with gr.Blocks(title="Fasih-TTS-V1 · Arabic Fusha text to speech") as demo:
+    gr.HTML(ui.HERO)
+    with gr.Row(elem_id="studio", equal_height=False):
+        with gr.Column(scale=6):
+            text = gr.Textbox(value=EXAMPLES[0][1], lines=5, max_lines=10, rtl=True, show_label=False,
+                              placeholder="اكتب نصًا بالعربية الفصحى…", elem_id="text-in")
+            counter = gr.HTML(count(EXAMPLES[0][1]))
+            with gr.Row(elem_id="chips"):
+                chips = [(gr.Button(label, size="sm", variant="secondary"), value) for label, value in EXAMPLES]
+            btn = gr.Button("انطق", variant="primary", elem_id="speak-btn")
+            with gr.Accordion("إعدادات · Settings", open=False):
+                auto_diac = gr.Checkbox(value=True, label="تشكيل تلقائي (CATT) · Auto-diacritize")
+                temperature = gr.Slider(0.3, 1.0, value=0.65, step=0.05,
+                                        label="درجة التنوع · Temperature (lower is steadier)")
+        with gr.Column(scale=5):
+            audio = gr.Audio(label="صوت فصيح · Fasih", type="numpy", interactive=False, autoplay=True,
+                             buttons=["download"], elem_id="audio-out")
+            stats = gr.HTML(ui.STATS_EMPTY)
+            read = gr.HTML(ui.READ_EMPTY)
+    gr.HTML(ui.EVIDENCE)
+    gr.HTML(ui.BOUNDARY)
+    gr.HTML(ui.FOOTER)
+
+    # Counted in the browser: per-keystroke server calls can return out of order.
+    text.change(None, text, counter, js=ui.COUNTER_JS, queue=False, show_progress="hidden",
+                api_visibility="private")
+    for chip, value in chips:
+        chip.click(lambda v=value: v, None, text, queue=False, show_progress="hidden",
+                   api_visibility="private")
+    btn.click(speak, [text, auto_diac, temperature], [audio, stats, read], api_visibility="private")
+    # Stable API for gradio_client and MCP callers: same name, inputs and audio output as before.
+    gr.Button(visible=False).click(synthesize, [text, auto_diac, temperature], audio, api_name="predict")
+
 
 if __name__ == "__main__":
-    demo.queue(max_size=20).launch(mcp_server=True)
+    demo.queue(max_size=20).launch(mcp_server=True, theme=ui.THEME, css=ui.CSS, head=ui.HEAD, js=ui.FORCE_DARK)
